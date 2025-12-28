@@ -48,8 +48,8 @@ android {
                 create<MavenPublication>("release") {
                     from(components["release"])
 
-                    groupId = "com.github.MohitAnuragi"
-                    artifactId = "monetization"
+                    groupId = "https://github.com/MohitAnuragi/Billing-Library"
+                    artifactId = "Billing-Library"
                     version = "1.0.0"
                 }
             }
