@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center">
+
+    <com.billing.ads.banner.view.AdBannerView
+        android:id="@+id/bannerAdView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        android:background="#E0E0E0"
+        android:layout_marginBottom="30dp"/>
+
+    <Button
+        android:id="@+id/btnLoadInter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Load Interstitial"/>
+
+    <Button
+        android:id="@+id/btnShowInter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show Interstitial"/>
+
+    <Button
+        android:id="@+id/btnLoadReward"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Load Rewarded"/>
+
+    <Button
+        android:id="@+id/btnShowReward"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show Rewarded"/>
+
+</LinearLayout>
