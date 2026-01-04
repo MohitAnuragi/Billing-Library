@@ -38,9 +38,6 @@ android {
         viewBinding = true
         compose = true
     }
-//    composeOptions {
-//        kotlinCompilerExtensionVersion = "2.0.21" // Match your Kotlin version
-//    }
 
     afterEvaluate {
         publishing {
@@ -48,7 +45,7 @@ android {
                 create<MavenPublication>("release") {
                     from(components["release"])
 
-                    groupId = "https://github.com/MohitAnuragi/Billing-Library"
+                    groupId = "com.github.MohitAnuragi"
                     artifactId = "Billing-Library"
                     version = "1.0.0"
                 }
