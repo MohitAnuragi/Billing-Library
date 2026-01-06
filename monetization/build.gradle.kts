@@ -16,6 +16,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
     }
 
     buildTypes {
@@ -47,7 +48,7 @@ android {
 
                     groupId = "com.github.MohitAnuragi"
                     artifactId = "Billing-Library"
-                    version = "1.0.0"
+                    version = "1.0.4"
                 }
             }
         }
@@ -62,8 +63,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation("com.google.android.gms:play-services-ads:24.9.0")
-    implementation("com.facebook.android:audience-network-sdk:6.21.0")
+    api("com.google.android.gms:play-services-ads:24.9.0")
+    api("com.facebook.android:audience-network-sdk:6.21.0")
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2025.12.01"))
