@@ -1,0 +1,4 @@
+-keep class com.billing.core.** { *; }
+-keep class com.billing.ads.** { *; }
+-keep class com.billing.update.** { *; }
+-keep class com.billing.review.** { *; }
