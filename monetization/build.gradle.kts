@@ -1,7 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
     id("maven-publish")
 }
 
@@ -32,46 +34,64 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    testOptions {
+        unitTests {
+            // Needed by Robolectric
+            isIncludeAndroidResources = true
+        }
     }
-    buildFeatures {
-        viewBinding = true
-        compose = true
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
+}
 
-    afterEvaluate {
-        publishing {
-            publications {
-                create<MavenPublication>("release") {
-                    from(components["release"])
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+        // Kept low so the library never raises an app's Kotlin requirement by itself
+        // (the AdMob SDK is what sets the real minimum: Kotlin 2.1)
+        languageVersion.set(KotlinVersion.KOTLIN_2_0)
+        apiVersion.set(KotlinVersion.KOTLIN_2_0)
+    }
+    coreLibrariesVersion = "2.0.21"
+}
 
-                    groupId = "com.github.MohitAnuragi"
-                    artifactId = "Billing-Library"
-                    version = "1.0.4"
-                }
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+
+                groupId = providers.gradleProperty("GROUP").get()
+                artifactId = "monetization"
+                // JitPack sets VERSION to the Git tag it is building. Using it here means
+                // the two modules always point at each other with the right version.
+                version = providers.environmentVariable("VERSION")
+                    .filter { providers.environmentVariable("JITPACK").orNull == "true" }
+                    .orElse(providers.gradleProperty("VERSION_NAME"))
+                    .get()
             }
         }
     }
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
+    // "api": apps that use the library can also use the AdMob and Meta classes directly
+    api(libs.play.services.ads)
+    api(libs.audience.network)
+
+    // Consent (GDPR) for ConsentManager
+    implementation(libs.ump)
+
+    // Play Core: In-App Updates & Reviews
+    implementation(libs.play.app.update)
+    implementation(libs.play.review)
+
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    api("com.google.android.gms:play-services-ads:24.9.0")
-    api("com.facebook.android:audience-network-sdk:6.21.0")
-
-    // Compose
-    implementation(platform("androidx.compose:compose-bom:2025.12.01"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.foundation:foundation")
-
-    // Play Core (Needed for the next step: Updates & Reviews)
-    implementation("com.google.android.play:app-update-ktx:2.1.0")
-    implementation("com.google.android.play:review-ktx:2.0.2")
 }

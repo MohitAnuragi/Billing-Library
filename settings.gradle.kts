@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "Billing Library"
 include(":app")
 include(":monetization")
+include(":monetization-compose")

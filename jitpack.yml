@@ -1,4 +1,7 @@
 jdk:
   - openjdk17
-before_install:
-  - ./gradlew dependencies
+# Only the two library modules have the maven-publish plugin,
+# so this builds and publishes them and skips the demo app.
+install:
+  - chmod +x gradlew
+  - ./gradlew publishToMavenLocal
