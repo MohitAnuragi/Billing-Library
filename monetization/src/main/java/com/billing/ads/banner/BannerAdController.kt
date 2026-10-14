@@ -1,9 +1,9 @@
 package com.billing.ads.banner
 
-import android.Manifest
 import android.content.Context
 import android.view.ViewGroup
-import androidx.annotation.RequiresPermission
+import com.billing.ads.banner.view.BannerSize
+import com.billing.ads.meta.MetaProvider
 import com.billing.utils.Logger
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -16,11 +16,17 @@ class BannerAdController(
     private val container: ViewGroup
 ) {
 
-    @RequiresPermission(Manifest.permission.INTERNET)
-    fun loadAdMobBanner(adUnitId: String) {
+    // The banner that is currently inside the container (only one of the two is set)
+    private var adMobView: AdView? = null
+    private var metaView: com.facebook.ads.AdView? = null
+
+    @JvmOverloads
+    fun loadAdMobBanner(adUnitId: String, size: BannerSize = BannerSize.STANDARD) {
         Logger.d("Loading AdMob Banner...")
+        destroy()
+
         val adView = AdView(context)
-        adView.setAdSize(AdSize.BANNER)
+        adView.setAdSize(adMobSize(size))
         adView.adUnitId = adUnitId
 
         adView.adListener = object : AdListener() {
@@ -30,18 +36,18 @@ class BannerAdController(
             }
         }
 
-        container.removeAllViews()
         container.addView(adView)
+        adMobView = adView
         adView.loadAd(AdRequest.Builder().build())
     }
 
-    fun loadMetaBanner(adUnitId: String) {
+    @JvmOverloads
+    fun loadMetaBanner(adUnitId: String, size: BannerSize = BannerSize.STANDARD) {
         Logger.d("Loading Meta Banner...")
-        val adView = com.facebook.ads.AdView(
-            context,
-            adUnitId,
-            com.facebook.ads.AdSize.BANNER_HEIGHT_50
-        )
+        destroy()
+        MetaProvider.ensureInitialized(context)
+
+        val adView = com.facebook.ads.AdView(context, adUnitId, metaSize(size))
 
         val config = adView.buildLoadAdConfig()
             .withAdListener(object : com.facebook.ads.AdListener {
@@ -53,8 +59,47 @@ class BannerAdController(
                 override fun onLoggingImpression(ad: com.facebook.ads.Ad?) {}
             }).build()
 
-        container.removeAllViews()
         container.addView(adView)
+        metaView = adView
         adView.loadAd(config)
+    }
+
+    // Frees the current banner. Call when the screen goes away.
+    fun destroy() {
+        adMobView?.destroy()
+        adMobView = null
+        metaView?.destroy()
+        metaView = null
+        container.removeAllViews()
+    }
+
+    fun pause() {
+        adMobView?.pause()
+    }
+
+    fun resume() {
+        adMobView?.resume()
+    }
+
+    private fun adMobSize(size: BannerSize): AdSize = when (size) {
+        BannerSize.STANDARD -> AdSize.BANNER
+        BannerSize.ADAPTIVE -> AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adaptiveWidthDp())
+    }
+
+    // Meta has no adaptive size: its banners already fill the width, only the height changes
+    private fun metaSize(size: BannerSize): com.facebook.ads.AdSize {
+        val isTablet = context.resources.configuration.smallestScreenWidthDp >= 600
+        return if (size == BannerSize.ADAPTIVE && isTablet) {
+            com.facebook.ads.AdSize.BANNER_HEIGHT_90
+        } else {
+            com.facebook.ads.AdSize.BANNER_HEIGHT_50
+        }
+    }
+
+    // Width of the container, or of the screen when the container is not laid out yet
+    private fun adaptiveWidthDp(): Int {
+        val metrics = context.resources.displayMetrics
+        val widthPx = if (container.width > 0) container.width else metrics.widthPixels
+        return (widthPx / metrics.density).toInt()
     }
 }

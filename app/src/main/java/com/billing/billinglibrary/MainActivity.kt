@@ -25,7 +25,9 @@ import androidx.compose.ui.unit.dp
 import com.billing.billinglibrary.ui.theme.BillingLibraryTheme
 import com.billing.ads.AdManager
 import com.billing.ads.banner.compose.AdBanner
+import com.billing.ads.banner.view.BannerSize
 import com.billing.ads.banner.view.BannerType
+import com.billing.consent.ConsentManager
 import com.billing.core.MonetizationKit
 import com.billing.core.SdkConfig
 
@@ -40,13 +42,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-
-        val config = SdkConfig(
-            adMobAppId = "ca-app-pub-3940256099942544~3347511713", // Test App ID
-            isDebug = true,
-            autoInitialize = true
-        )
-        MonetizationKit.init(this, config)
+        // Shows Google's consent form when the user needs to see one (EEA/UK)
+        ConsentManager.gatherConsent(this) { canRequestAds ->
+            Toast.makeText(this, "Consent done. Can request ads: $canRequestAds", Toast.LENGTH_SHORT).show()
+        }
 
         setContent {
             BillingLibraryTheme {
@@ -92,7 +91,8 @@ fun MonetizationTestScreen(
         AdBanner(
             modifier = Modifier.fillMaxWidth(),
             adUnitId = bannerId,
-            type = BannerType.ADMOB
+            type = BannerType.ADMOB,
+            size = BannerSize.ADAPTIVE
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -101,7 +101,11 @@ fun MonetizationTestScreen(
         // --- 2. Ads Controls ---
         Button(onClick = {
             Toast.makeText(context, "Loading Interstitial...", Toast.LENGTH_SHORT).show()
-            AdManager.loadInterstitial(context, interstitialId, "")
+            AdManager.loadInterstitial(
+                context, interstitialId, "",
+                onLoaded = { Toast.makeText(context, "Interstitial Loaded", Toast.LENGTH_SHORT).show() },
+                onFailed = { error -> Toast.makeText(context, "Interstitial Failed: $error", Toast.LENGTH_SHORT).show() }
+            )
         }) { Text("Load Interstitial") }
 
         Button(onClick = {
@@ -114,7 +118,11 @@ fun MonetizationTestScreen(
 
         Button(onClick = {
             Toast.makeText(context, "Loading Rewarded...", Toast.LENGTH_SHORT).show()
-            AdManager.loadRewarded(context, rewardedId, "")
+            AdManager.loadRewarded(
+                context, rewardedId, "",
+                onLoaded = { Toast.makeText(context, "Rewarded Loaded", Toast.LENGTH_SHORT).show() },
+                onFailed = { error -> Toast.makeText(context, "Rewarded Failed: $error", Toast.LENGTH_SHORT).show() }
+            )
         }) { Text("Load Rewarded") }
 
         Button(onClick = {
@@ -140,7 +148,9 @@ fun MonetizationTestScreen(
                 if (activity != null) {
                     Toast.makeText(context, "Requesting Review...", Toast.LENGTH_SHORT).show()
                     // CALL THE NEW FUNCTION
-                    MonetizationKit.requestAppReview(activity)
+                    MonetizationKit.requestAppReview(activity) { isSuccessful ->
+                        Toast.makeText(context, "Review flow finished: $isSuccessful", Toast.LENGTH_SHORT).show()
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -154,7 +164,9 @@ fun MonetizationTestScreen(
                 if (activity != null) {
                     Toast.makeText(context, "Checking for Updates...", Toast.LENGTH_SHORT).show()
                     // CALL THE NEW FUNCTION
-                    MonetizationKit.checkForAppUpdate(activity, isFlexible = true)
+                    MonetizationKit.checkForAppUpdate(activity, isFlexible = true) { status ->
+                        Toast.makeText(context, "Update: $status", Toast.LENGTH_SHORT).show()
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
